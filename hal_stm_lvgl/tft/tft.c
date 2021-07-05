@@ -131,9 +131,9 @@ void tft_init(void)
    /* LittlevGL requires a buffer where it draws the objects. The buffer's has to be greater than 1 display row*/
 
 	static lv_disp_draw_buf_t disp_buf_1;
-	static lv_color_t buf1_1[TFT_HOR_RES * 68];
-	static lv_color_t buf1_2[TFT_HOR_RES * 68];
-	lv_disp_draw_buf_init(&disp_buf_1, buf1_1, buf1_2, TFT_HOR_RES * 68);   /*Initialize the display buffer*/
+	static lv_color_t buf1_1[TFT_HOR_RES * 32];
+	static lv_color_t buf1_2[TFT_HOR_RES * 32];
+	lv_disp_draw_buf_init(&disp_buf_1, buf1_1, buf1_2, TFT_HOR_RES * 32);   /*Initialize the display buffer*/
 
 
 	/*-----------------------------------
