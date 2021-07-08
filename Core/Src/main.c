@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "queue.h"
 #include "lvgl/lvgl.h"
 
 #include "hal_stm_lvgl/tft/tft.h"
@@ -305,7 +306,7 @@ static void MX_TIM8_Init(void)
   htim8.Instance = TIM8;
   htim8.Init.Prescaler = 0;
   htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim8.Init.Period = 28124;
+  htim8.Init.Period = 14062;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim8.Init.RepetitionCounter = 0;
   htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -347,21 +348,71 @@ static void MX_DMA_Init(void)
 
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+// Declares a queue structure for the UART
+xQueueHandle qADC;
 
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	uint32_t buf = 2;
+	signed portBASE_TYPE pxHigherPriorityTaskWoken = pdFALSE;
+	xQueueSendToBackFromISR(qADC, &buf, &pxHigherPriorityTaskWoken);
+	if (pxHigherPriorityTaskWoken == pdTRUE)
+	{
+		portYIELD();
+	}
 }
 
-uint16_t adcBuffer[2];
+void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc){
+	uint32_t buf = 1;
+	signed portBASE_TYPE pxHigherPriorityTaskWoken = pdFALSE;
+	xQueueSendToBackFromISR(qADC, &buf, &pxHigherPriorityTaskWoken);
+	if (pxHigherPriorityTaskWoken == pdTRUE)
+	{
+		portYIELD();
+	}
+}
+
+uint16_t adcBuffer[3072];
+uint16_t Buffer1[1536];
+uint16_t Buffer2[1536];
 
 void CalculationTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 1);
+	uint32_t buf = 0;
+	qADC = xQueueCreate(1, sizeof(uint32_t));
+
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 3072);
 	HAL_TIM_Base_Start(&htim8);
 
 	while (1)
 	{
-		osDelay(5);
+		xQueueReceive(qADC, &buf, portMAX_DELAY);
+		switch(buf){
+			case 1:
+				// Os dados estão entre adcBuffer[0] e adcBuffer[1535]
+				for (int i=0; i<1536;i++){
+					Buffer1[i] = adcBuffer[i];
+					adcBuffer[i] = 0;
+				}
+				for (int i=1536; i<3072;i++){
+					Buffer2[i-1536] = adcBuffer[i];
+				}
+				buf = 0;
+				break;
+			case 2:
+				// Os dados estão entre adcBuffer[1536] e adcBuffer[3071]
+				for (int i=0; i<1536;i++){
+					Buffer1[i] = adcBuffer[i];
+				}
+				for (int i=1536; i<3072;i++){
+					Buffer2[i-1536] = adcBuffer[i];
+				}
+				buf = 0;
+				break;
+			default:
+				break;
+		}
+
 	}
   /* USER CODE END 5 */
 }
