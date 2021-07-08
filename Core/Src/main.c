@@ -28,6 +28,9 @@
 
 #include "hal_stm_lvgl/tft/tft.h"
 #include "hal_stm_lvgl/touchpad/touchpad.h"
+
+#include "arm_const_structs.h"
+#include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -412,7 +415,11 @@ void CalculationTask(void *argument)
 			default:
 				break;
 		}
-
+		// Para FFT
+		//arm_cfft_f32(&arm_cfft_sR_f32_len256,FasesAC_ReIm_R,0,1);
+		//arm_cmplx_mag_f32(FasesAC_ReIm_R,FasesAC_mod_R,256);
+		//arm_scale_f32(FasesAC_mod_R,(1/numero_pontos), FasesAC_mod_R,numero_pontos);
+		//harmonics_R_phase[k] = atan2(FasesAC_ReIm_R[2*k+5],FasesAC_ReIm_R[2*k+4]);
 	}
   /* USER CODE END 5 */
 }
