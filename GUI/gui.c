@@ -136,12 +136,12 @@ void lv_gui(void)
     lv_obj_set_style_text_font(lv_scr_act(), font_normal, 0);
 
     lv_obj_t * t1 = lv_tabview_add_tab(tv, "Graph1");
-    lv_obj_t * t2 = lv_tabview_add_tab(tv, "Graph2");
-    lv_obj_t * t3 = lv_tabview_add_tab(tv, "Anime/button");
+    //lv_obj_t * t2 = lv_tabview_add_tab(tv, "Graph2");
+    //lv_obj_t * t3 = lv_tabview_add_tab(tv, "Anime/button");
     lv_obj_t * t4 = lv_tabview_add_tab(tv, "button");
     graph1_create(t1);
-    graph2_create(t2);
-    anime_create(t3);
+    //graph2_create(t2);
+    //anime_create(t3);
     button_create(t4);
 
     //color_changer_create(tv);
@@ -188,9 +188,7 @@ void my_timer(lv_timer_t * timer)
 }
 
 static void button_create(lv_obj_t * parent){
-	UARTInit();
    // Limpa a tela do terminal
-   UARTPutString(STDOUT, "\033[2J\033[H",0);
 #if 0
 	/*Configure GPIO pin Output Level */
 	  GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -233,6 +231,10 @@ static void button_create(lv_obj_t * parent){
     (void)timer;
 }
 
+
+extern float signal_y2[];
+#define N_MEASUREMENT 3072
+
 static void graph1_create(lv_obj_t * parent){
     lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_ROW_WRAP);
 
@@ -256,17 +258,22 @@ static void graph1_create(lv_obj_t * parent){
     lv_obj_add_flag(chart1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
     lv_obj_set_grid_cell(chart1, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 1, 1);
     lv_chart_set_axis_tick(chart1, LV_CHART_AXIS_PRIMARY_Y, 0, 0, 5, 1, true, 80);
-    lv_chart_set_axis_tick(chart1, LV_CHART_AXIS_PRIMARY_X, 0, 0, 12, 1, true, 50);
-    lv_chart_set_div_line_count(chart1, 0, 12);
-    lv_chart_set_point_count(chart1, 12);
+    lv_chart_set_axis_tick(chart1, LV_CHART_AXIS_PRIMARY_X, 0, 0, N_MEASUREMENT, N_MEASUREMENT/4, false, 50);
+    //lv_chart_set_div_line_count(chart1, 0, 12);
+    lv_chart_set_point_count(chart1, N_MEASUREMENT);
+    lv_chart_set_range(chart1, LV_CHART_AXIS_PRIMARY_Y, -10, 10);
     lv_obj_add_event_cb(chart1, chart_event_cb, LV_EVENT_ALL, NULL);
-    if(disp_size == DISP_SMALL) lv_chart_set_zoom_x(chart1, 256 * 3);
-    else if(disp_size == DISP_MEDIUM) lv_chart_set_zoom_x(chart1, 256 * 2);
+    //if(disp_size == DISP_SMALL) lv_chart_set_zoom_x(chart1, 256 * 3);
+    //else if(disp_size == DISP_MEDIUM) lv_chart_set_zoom_x(chart1, 256 * 2);
 
     lv_obj_set_style_border_side(chart1, LV_BORDER_SIDE_LEFT | LV_BORDER_SIDE_BOTTOM, 0);
     lv_obj_set_style_radius(chart1, 0, 0);
 
     ser1 = lv_chart_add_series(chart1, lv_theme_get_color_primary(chart1), LV_CHART_AXIS_PRIMARY_Y);
+    for (int i=0;i<N_MEASUREMENT;i++){
+    	lv_chart_set_next_value(chart1, ser1, (lv_coord_t)(signal_y2[i]*10));
+    }
+    /*
     lv_chart_set_next_value(chart1, ser1, lv_rand(10, 80));
     lv_chart_set_next_value(chart1, ser1, lv_rand(10, 80));
     lv_chart_set_next_value(chart1, ser1, lv_rand(10, 80));
@@ -279,7 +286,8 @@ static void graph1_create(lv_obj_t * parent){
     lv_chart_set_next_value(chart1, ser1, lv_rand(10, 80));
     lv_chart_set_next_value(chart1, ser1, lv_rand(10, 80));
     lv_chart_set_next_value(chart1, ser1, lv_rand(10, 80));
-    lv_chart_set_next_value(chart1, ser1, lv_rand(10, 80));
+    lv_chart_set_next_value(chart1, ser1, lv_rand(10, 80));*/
+
 }
 
 
@@ -629,8 +637,8 @@ static void chart_event_cb(lv_event_t * e)
                 const char * month[] = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"};
                 lv_snprintf(dsc->text, sizeof(dsc->text), "%s", month[dsc->value]);
             } else {
-                const char * month[] = {"Jan", "Febr", "March", "Apr", "May", "Jun", "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
-                lv_snprintf(dsc->text, sizeof(dsc->text), "%s", month[dsc->value]);
+                //const char * month[] = {"Jan", "Febr", "March", "Apr", "May", "Jun", "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
+                //lv_snprintf(dsc->text, sizeof(dsc->text), "%s", month[dsc->value]);
             }
         }
 
